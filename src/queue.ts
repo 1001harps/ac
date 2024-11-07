@@ -21,13 +21,13 @@ export class Queue<T, R> extends EventListener<QueueEvent<T, R>> {
   constructor(processor: NonNullable<QueueProcessor<T, R>>, concurrency = 1) {
     super();
 
-    this.queue = async.queue<T>(async (task, callback) => {
-      try {
-        const result = await processor(task);
-        this.notify({ type: "complete", task, result });
-      } catch (error) {
-        callback(error as Error);
-      }
+    this.queue = async.queue<T>((task, callback) => {
+      processor(task)
+        .then((result) => {
+          this.notify({ type: "complete", task, result });
+          callback();
+        })
+        .catch(callback);
     }, concurrency);
   }
 

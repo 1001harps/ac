@@ -81,7 +81,7 @@ export class Converter extends EventListener<ConverterEvent> {
     // toBlobURL is used to bypass CORS issue, urls with the same domain can be used directly.
     await this.ffmpeg.load({
       coreURL: await toBlobURL(`/ffmpeg-core.js`, "text/javascript"),
-      wasmURL: `${baseURL}/ffmpeg-core.wasm`,
+      wasmURL: `/ffmpeg-core.wasm`,
       workerURL: await toBlobURL(`/ffmpeg-core.worker.js`, "text/javascript"),
     });
   }
