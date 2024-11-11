@@ -1,10 +1,5 @@
-self.addEventListener("install", function (event) {
-  console.log("sw installed");
-});
-
+// workaround for cross origin isolation issues
 self.addEventListener("fetch", (event) => {
-  console.log("fetch event", event);
-
   const newResponse = fetch(event.request).then((response) => {
     const newHeaders = new Headers(response.headers);
 

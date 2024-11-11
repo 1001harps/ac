@@ -15,8 +15,6 @@ const isValidAudioFile = async (file: File) => {
 };
 
 const buildCmd = (input: string, output: string, bitrate: string = "192k") => {
-  // ffmpeg -i input.wav -vn -ar 44100 -ac 2 -b:a 192k output.mp3
-
   let cmd = [];
 
   // input file
@@ -30,6 +28,7 @@ const buildCmd = (input: string, output: string, bitrate: string = "192k") => {
   cmd.push("-b:a");
   cmd.push(bitrate);
 
+  // TODO: VBR
   // -q:a 0 (NB this is VBR from 220 to 260
 
   // output
@@ -70,13 +69,9 @@ export class Converter extends EventListener<ConverterEvent> {
   }
 
   async load() {
-    // this.ffmpeg.on("log", (event) => {});
-
     this.ffmpeg.on("progress", (e) => {
       this.notify({ type: "progress", percent: e.progress });
     });
-
-    console.log("load");
 
     const baseURL = "https://unpkg.com/@ffmpeg/core-mt@0.12.6/dist/esm";
 
@@ -92,16 +87,12 @@ export class Converter extends EventListener<ConverterEvent> {
         "text/javascript"
       ),
     });
-
-    console.log("/load");
   }
 
   async convert(file: File): Promise<Uint8Array> {
     if (!(await isValidAudioFile(file))) {
       throw "not a valid audio file";
     }
-
-    console.log("convert");
 
     const id = window.crypto.randomUUID();
 
@@ -113,8 +104,6 @@ export class Converter extends EventListener<ConverterEvent> {
     await this.ffmpeg.exec(cmd);
     const fileData = await this.ffmpeg.readFile(`${id}.mp3`);
     const data = new Uint8Array(fileData as ArrayBuffer);
-
-    console.log("/convert", data);
 
     return data;
   }

@@ -14,11 +14,7 @@ import { createObjectUrl, downloadUrl, useInstance } from "./utils";
 function App() {
   const converter = useInstance(() => new Converter());
   const queue = useInstance(
-    () =>
-      new Queue(async (file: File) => {
-        console.log("processing", file);
-        return converter.convert(file);
-      })
+    () => new Queue(async (file: File) => converter.convert(file))
   );
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop: (files) => queue.push(files),
@@ -43,7 +39,6 @@ function App() {
 
     // setup queue handlers
     queue.addEventListener((event) => {
-      console.log("ev", event);
       switch (event.type) {
         case "complete": {
           const name = event.task.name.slice(
