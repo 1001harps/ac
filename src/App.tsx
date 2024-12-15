@@ -7,7 +7,12 @@ import { toaster, Toaster } from "@/components/ui/toaster";
 import { Box, HStack, Stack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { bitrateOptions, Converter } from "./converter";
+import {
+  BitrateOption,
+  bitrateOptions,
+  BitrateOptionType,
+  Converter,
+} from "./converter";
 import { Queue } from "./queue";
 import { createObjectUrl, downloadUrl, useInstance } from "./utils";
 
@@ -24,7 +29,10 @@ function App() {
   });
 
   const [progressPercent, setProgressPercent] = useState(0);
-  const [bitrate, setBitrate] = useState(320);
+  const [bitrateType, setBitrateType] = useState<BitrateOptionType>("constant");
+  const [bitrateOption, setBitrateOption] = useState<BitrateOption>(
+    bitrateOptions.at(0)!
+  );
 
   useEffect(() => {
     // init converter
@@ -70,9 +78,8 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const option = bitrateOptions.find((x) => x.bitrate === bitrate)!;
-    converter.setBitrate(option);
-  }, [bitrate]);
+    converter.setBitrateOption(bitrateOption);
+  }, [bitrateOption]);
 
   return (
     <Stack as="main">
@@ -89,15 +96,32 @@ function App() {
             <NativeSelectField items={["mp3"]}></NativeSelectField>
           </NativeSelectRoot>
 
+          <label>type</label>
+          <NativeSelectRoot size="sm" width="240px">
+            <NativeSelectField
+              items={["constant", "variable"]}
+              onChange={(e) =>
+                setBitrateType(e.target.value as BitrateOptionType)
+              }
+            ></NativeSelectField>
+          </NativeSelectRoot>
+
           <label>bitrate</label>
           <NativeSelectRoot size="sm" width="240px">
             <NativeSelectField
-              items={bitrateOptions.map((opt) => ({
-                label: `${opt.bitrate} kbps`,
-                value: opt.bitrate.toString(),
-              }))}
-              value={bitrate}
-              onChange={(e) => setBitrate(parseInt(e.target.value))}
+              items={bitrateOptions
+                .filter((x) => x.type === bitrateType)
+                .map((opt) => ({
+                  label: opt.label,
+                  value: opt.value.toString(),
+                }))}
+              value={bitrateOption.value.toString()}
+              onChange={(e) => {
+                const option = bitrateOptions.find(
+                  (x) => x.value.toString() === e.target.value
+                )!;
+                setBitrateOption(option);
+              }}
             ></NativeSelectField>
           </NativeSelectRoot>
         </HStack>

@@ -2,6 +2,8 @@ import { EventListener } from "@9h/lib";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL } from "@ffmpeg/util";
 
+const assertUnreachable = (_: never) => {};
+
 const isValidAudioFile = async (file: File) => {
   const context = new AudioContext();
 
@@ -14,7 +16,11 @@ const isValidAudioFile = async (file: File) => {
   }
 };
 
-const buildCmd = (input: string, output: string, bitrate: string = "192k") => {
+const buildCmd = (
+  input: string,
+  output: string,
+  bitrateOption: NonNullable<BitrateOption>
+) => {
   let cmd = [];
 
   // input file
@@ -24,12 +30,20 @@ const buildCmd = (input: string, output: string, bitrate: string = "192k") => {
   // disable video
   cmd.push("-vn");
 
-  // bitrate
-  cmd.push("-b:a");
-  cmd.push(bitrate);
+  switch (bitrateOption.type) {
+    case "constant":
+      cmd.push("-b:a");
+      cmd.push(`${bitrateOption.value}k`);
+      break;
 
-  // TODO: VBR
-  // -q:a 0 (NB this is VBR from 220 to 260
+    case "variable":
+      cmd.push("-q:a");
+      cmd.push(`${bitrateOption.value}`);
+      break;
+
+    default:
+      assertUnreachable(bitrateOption.type);
+  }
 
   // output
   cmd.push(output);
@@ -42,27 +56,38 @@ type ConverterEvent = {
   percent: number;
 };
 
+export type BitrateOptionType = "constant" | "variable";
+
 export type BitrateOption = {
-  type: "fixed";
-  bitrate: number;
+  type: BitrateOptionType;
+  value: number;
+  label: string;
 };
-//   | {
-//       type: "variable";
-//       quality: number;
-//     };
 
 export const bitrateOptions: BitrateOption[] = [
-  { type: "fixed", bitrate: 32 },
-  { type: "fixed", bitrate: 96 },
-  { type: "fixed", bitrate: 128 },
-  { type: "fixed", bitrate: 192 },
-  { type: "fixed", bitrate: 256 },
-  { type: "fixed", bitrate: 320 },
+  // CBR
+  { type: "constant", value: 320, label: "320 kbps" },
+  { type: "constant", value: 256, label: "256 kbps" },
+  { type: "constant", value: 192, label: "192 kbps" },
+  { type: "constant", value: 128, label: "128 kbps" },
+  { type: "constant", value: 96, label: "96 kbps" },
+
+  // VBR
+  { type: "variable", value: 0, label: "220-260 kbps" },
+  { type: "variable", value: 1, label: "190-250 kbps" },
+  { type: "variable", value: 2, label: "170-210 kbps" },
+  { type: "variable", value: 3, label: "150-195 kbps" },
+  { type: "variable", value: 4, label: "140-185 kbps" },
+  { type: "variable", value: 5, label: "120-150 kbps" },
+  { type: "variable", value: 6, label: "100-130 kbps" },
+  { type: "variable", value: 7, label: "80-120 kbps" },
+  { type: "variable", value: 8, label: "70-105 kbps" },
+  { type: "variable", value: 9, label: "45-85 kbps" },
 ];
 
 export class Converter extends EventListener<ConverterEvent> {
   ffmpeg = new FFmpeg();
-  bitrate = bitrateOptions.at(-1)!;
+  bitrateOption = bitrateOptions.at(0)!;
 
   constructor() {
     super();
@@ -98,7 +123,7 @@ export class Converter extends EventListener<ConverterEvent> {
 
     const buffer = await file.arrayBuffer();
 
-    const cmd = buildCmd(id, `${id}.mp3`, `${this.bitrate.bitrate}k`);
+    const cmd = buildCmd(id, `${id}.mp3`, this.bitrateOption);
 
     await this.ffmpeg.writeFile(id, new Uint8Array(buffer));
     await this.ffmpeg.exec(cmd);
@@ -108,7 +133,7 @@ export class Converter extends EventListener<ConverterEvent> {
     return data;
   }
 
-  setBitrate(bitrateOption: BitrateOption) {
-    this.bitrate = bitrateOption;
+  setBitrateOption(bitrateOption: BitrateOption) {
+    this.bitrateOption = bitrateOption;
   }
 }
