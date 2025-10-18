@@ -1,6 +1,6 @@
-import { EventListener } from "@9h/lib";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL } from "@ffmpeg/util";
+import { EventListener } from "./events.ts";
 
 const assertUnreachable = (_: never) => {};
 
@@ -128,6 +128,7 @@ export class Converter extends EventListener<ConverterEvent> {
     await this.ffmpeg.writeFile(id, new Uint8Array(buffer));
     await this.ffmpeg.exec(cmd);
     const fileData = await this.ffmpeg.readFile(`${id}.mp3`);
+    // @ts-ignore
     const data = new Uint8Array(fileData as ArrayBuffer);
 
     return data;

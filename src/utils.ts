@@ -13,5 +13,6 @@ export const downloadUrl = (url: string, filename: string) => {
 };
 
 export const createObjectUrl = (data: Uint8Array, mimeType: string) => {
+  // @ts-ignore
   return URL.createObjectURL(new Blob([data.buffer], { type: mimeType }));
 };

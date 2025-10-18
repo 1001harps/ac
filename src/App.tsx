@@ -8,9 +8,9 @@ import { Box, HStack, Stack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import {
-  BitrateOption,
+  type BitrateOption,
   bitrateOptions,
-  BitrateOptionType,
+  type BitrateOptionType,
   Converter,
 } from "./converter";
 import { Queue } from "./queue";
