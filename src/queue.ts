@@ -1,5 +1,5 @@
 import async from "async";
-import { EventListener } from "./events.ts";
+import { EventListener } from "./events";
 
 type QueueProcessor<T, R> = (task: T) => Promise<R>;
 

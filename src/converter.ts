@@ -1,6 +1,6 @@
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { toBlobURL } from "@ffmpeg/util";
-import { EventListener } from "./events.ts";
+import { EventListener } from "./events";
 
 const assertUnreachable = (_: never) => {};
 
